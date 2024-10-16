@@ -24,7 +24,9 @@ $misAficiones=(isset($_POST['aficiones']))
 
 */
 $errores=false;
+
 $mensajeErrores=[];
+
 if(strlen($nombre)<3 || strlen($nombre)>10){
     $errores=true;
     $mensajeErrores[]="
@@ -78,8 +80,24 @@ if($errores){
     }
     echo "</ol>";
 }else{
+    // 3.- Si todo esta correcto pintamos los datos enviados, si no mostramos los errores en una lista
     //pintar los datos
+    echo "<b>Los datos enviados son: </b><br>";
+    echo "Nombre: $nombre<br>";
+    echo "Email: $email<br>";
+    echo "Password: $pass<br>";
+    echo "Provincia: $provincia<br>";
+    echo "Rango de edad: $rango<br>";
+    echo "Aficiones: <br>";
+    foreach($misAficiones as $aficion){
+        echo "*) $aficion<br>";
+    }
+
+
+
+
+
+
 }
 
 
-// 3.- Si todo esta correcto pintamos los datos enviados, si no mostramos los errores en una lista

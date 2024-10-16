@@ -55,7 +55,7 @@
 
 
         <br><br>
-        <input type="submit" value="Enviar" />&nbsp;&nbsp;
+        <button type="submit" value="Enviar">Enviar</button>&nbsp;&nbsp;
         <input type="reset" />
     </form>
 </body>
