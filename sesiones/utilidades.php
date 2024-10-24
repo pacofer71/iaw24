@@ -32,9 +32,9 @@ function isLoginOk($email, $pass)
     global $misUsuarios;
     foreach ($misUsuarios as $correo => $datos) {
         if ($correo == $email) {
-            if ($pass == $datos[0]){
-                $_SESSION['email']=$email;
-                $_SESSION['perfil']=$datos[1];
+            if ($pass == $datos[0]) {
+                $_SESSION['email'] = $email;
+                $_SESSION['perfil'] = $datos[1];
                 return true;
             }
         }
