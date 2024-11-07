@@ -1,6 +1,45 @@
 <?php
 session_start();
-require __DIR__ . "/../utils/datos.php";
+require_once __DIR__ . "/../utils/datos.php";
+require __DIR__ . "/../utils/utilidades.php";
+require __DIR__."/../utils/Conexion.php";
+if(isset($_POST['username'])){
+    $username=sanearCadenas($_POST['username']);
+    $email=sanearCadenas($_POST['email']);
+    $perfil=(isset($_POST['perfil'])) ? sanearCadenas($_POST['perfil']) : -1;
+    $errores=false;
+    if(!longitudValida($username, 5, 80)){
+        $errores=true;
+    }else{
+        if(existeCampo('username', $username, $llave)){
+            
+        }
+    }
+    if(!emailValido($email)){
+        $errores=true;
+    }
+    if(!perfilValido($perfil)){
+        $errores=true;
+    }
+    if($errores){
+        header("Location:nuevo.php");
+        exit();
+    }
+    //si estamos aquí no hay errores,inserto el usuario
+    $q="insert into users(username, email, perfil) values(?, ?, ?)";
+    $stmt=mysqli_stmt_init($llave);
+    mysqli_stmt_prepare($stmt, $q);
+    mysqli_stmt_bind_param($stmt, 'sss', $username, $email, $perfil);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    mysqli_close($llave);
+    $_SESSION['mensaje']="Usuario creado con éxito.";
+    header("Location:users.php");
+
+
+}
+
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -22,10 +61,16 @@ require __DIR__ . "/../utils/datos.php";
             <div class="mb-5">
                 <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Username</label>
                 <input type="text" id="username" name="username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Username..." />
+                <?php
+                    pintarError('err_username');
+                ?>
             </div>
             <div class="mb-5">
                 <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
                 <input type="email" id="email" name="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Email..." />
+                <?php
+                    pintarError('err_email');
+                ?>
             </div>
             <div class="mb-5">
                 <label for="perfil" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Perfil</label>
@@ -41,6 +86,9 @@ require __DIR__ . "/../utils/datos.php";
                     }
                     ?>
                 </div>
+                <?php
+                    pintarError('err_perfil');
+                ?>
 
             </div>
             <div class="mt-4 flex flex-row-reverse">

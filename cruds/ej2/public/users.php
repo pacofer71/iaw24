@@ -1,8 +1,9 @@
 <?php
-    require __DIR__."/../utils/Conexion.php";
-    $q="select *from users order by id desc";
-    $usuarios=mysqli_query($llave, $q);
-    mysqli_close($llave);
+session_start();
+require __DIR__ . "/../utils/Conexion.php";
+$q = "select *from users order by id desc";
+$usuarios = mysqli_query($llave, $q);
+mysqli_close($llave);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -14,6 +15,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- CDN FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- CDN Sweetalert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Users</title>
 </head>
 
@@ -47,14 +50,14 @@
             </thead>
             <tbody>
                 <?php
-                foreach($usuarios as $item){
-                    $color=match(true){
-                        $item['perfil']=='Admin'=>'text-red-600',
-                        $item['perfil']=='Guest'=>'text-green-500',
-                        $item['perfil']=="User"=>'text-blue-500',
-                        default=>'text-purple-700'
+                foreach ($usuarios as $item) {
+                    $color = match (true) {
+                        $item['perfil'] == 'Admin' => 'text-red-600',
+                        $item['perfil'] == 'Guest' => 'text-green-500',
+                        $item['perfil'] == "User" => 'text-blue-500',
+                        default => 'text-purple-700'
                     };
-                echo <<<TXT
+                    echo <<<TXT
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                     <td class="px-6 py-4">
                         {$item['id']}
@@ -79,7 +82,21 @@
             </tbody>
         </table>
     </div>
-
+    <?php
+    if (isset($_SESSION['mensaje'])) {
+        echo <<<TXT
+    <script>
+        Swal.fire({
+            icon: "success",
+            title: "{$_SESSION['mensaje']}",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    </script>
+    TXT;
+    }
+    unset($_SESSION['mensaje']);
+    ?>
 </body>
 
 </html>
