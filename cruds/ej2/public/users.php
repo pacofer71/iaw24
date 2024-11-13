@@ -72,7 +72,15 @@ mysqli_close($llave);
                         <span class="font-bold $color">{$item['perfil']}</span>
                     </td>
                     <td class="px-6 py-4">
-                        $2999
+                        <form action="delete.php" method="POST">
+                        <input type="hidden" name="clave" value="{$item['id']}" />
+                        <a href="update.php?clave={$item['id']}">
+                        <i class="fas fa-edit text-green-600 hover:text-xl mr-2"></i>
+                        </a>
+                        <button type="submit" onclick="return confirm('¿Borrar Usuario?');">
+                            <i class='fas fa-trash text-red-600 hover:text-xl'></i>
+                        </button>
+                        </form>
                     </td>
                 </tr>
                 TXT;

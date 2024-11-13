@@ -28,15 +28,23 @@ function perfilValido($perfil){
     return true;
 }
 
-function existeCampo($nomCampo, $valor, $llave){
-    $q="select id from users where $nomCampo=?";
+function existeCampo($nomCampo, $valor, $llave, $id=null){
+    $q= ($id===null) ? "select id from users where $nomCampo=?" : 
+        "select id from users where $nomCampo=? AND id <> ?";
     $stmt=mysqli_stmt_init($llave);
     mysqli_stmt_prepare($stmt, $q);
-    mysqli_stmt_bind_param($stmt, 's', $valor);
+    if($id===null){
+        mysqli_stmt_bind_param($stmt, 's', $valor);
+    }else{
+        mysqli_stmt_bind_param($stmt, 'si', $valor, $id);
+    }
     mysqli_stmt_execute($stmt);
     mysqli_stmt_store_result($stmt);
     $filas=mysqli_stmt_num_rows($stmt);
-    mysqli_stmt_close($llave);
+    mysqli_stmt_close($stmt);
+    if($filas){
+        $_SESSION["err_$nomCampo"]="*** Error $valor ya está registrado";
+    }
     return $filas;
 }
 
