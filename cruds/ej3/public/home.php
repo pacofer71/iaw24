@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (isset($_SESSION['login'])) {
+    $perfil = $_SESSION['login'][0];
+    $username = $_SESSION['login'][1];
+}
 require __DIR__ . "/../utilidades/Conexion.php";
 $q = "select * from users order by email";
 $usuarios = mysqli_query($llave, $q);
@@ -39,6 +43,7 @@ mysqli_close($llave);
                 } else {
                     echo <<<TXT
                     <p class="px-4 py-1 rounded-xl bg-gray-200 border-2 border-black">{$_SESSION['login'][1]}&nbsp;&lt;{$_SESSION['login'][2]}&gt;</p>
+                    <a href="update.php?user=$username" class="font-bold text-white block p-2 rounded-xl mx-2 bg-green-400">EDITAR</a>
                     <a href="cerrarSesion.php" class="text-sm  text-red-600 dark:text-red-500 hover:underline">Cerrar Sesión</a>
                     TXT;
                 }
@@ -72,8 +77,16 @@ mysqli_close($llave);
             </thead>
             <tbody>
                 <?php
-                foreach($usuarios as $item){
-                echo <<<TXT
+                foreach ($usuarios as $item) {
+                    $boton = (isset($_SESSION['login']) && $item['username'] == $_SESSION['login'][1])
+                        ? "disabled" : "";
+                    $contenido = (isset($perfil) && $perfil == 'Admin') ?
+                        "<form method='POST' action='borrar.php'>
+                        <input type='hidden' name='id' value='{$item['id']}' />
+                        <button type='submit' $boton><i class='fas fa-trash'></i></button>
+                    </form>" :
+                        "NO DISPONIBLE";
+                    echo <<<TXT
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                     <td class="px-6 py-4">
                     {$item['id']}
@@ -88,7 +101,7 @@ mysqli_close($llave);
                         {$item['perfil']}
                     </td>
                     <td class="px-6 py-4">
-                        $2999
+                        $contenido
                     </td>
                 </tr>
                 TXT;
