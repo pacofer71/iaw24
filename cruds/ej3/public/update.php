@@ -9,45 +9,75 @@ if (!isset($_GET['user']) || !isset($_SESSION['login'])) {
 }
 $user = $_GET['user'];
 $perfilUsuario = $_SESSION['login'][0];
+//Evitando que un usuario con perfil 'User' edite a otro usuario que no sea el mismo 
+if ($perfilUsuario != 'Admin') {
+    if ($user != $_SESSION['login'][1]) {
+        //echo "<script>alert('intentando editar un usuario que no es el mismo')</script>";
+        header("Location:home.php");
+        die();
+    }
+}
+//------------Fin de lo anterior
 
+//Recupetamos los datos del usuario para actualizar
+$q = "select id, username, email, perfil from users where username=?";
+$stmt = mysqli_stmt_init($llave);
+mysqli_stmt_prepare($stmt, $q);
+mysqli_stmt_bind_param($stmt, 's', $user);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_bind_result($stmt, $id, $un, $em, $pf);
+mysqli_stmt_fetch($stmt);
+mysqli_stmt_close($stmt);
+//--------------------------------------------------------
 if (isset($_POST['email'])) {
     $email = sanearCadena($_POST['email']);
     $pass = sanearCadena($_POST['pass']);
     $username = sanearCadena($_POST['username']);
+    $perfil = ($perfilUsuario == 'Admin') ? sanearCadena($_POST['perfil']) : "User";
 
     $errores = false;
     if (!emailValido($email)) {
         $errores = true;
     } else {
-        if (existeCampo('email', $email, $llave)) {
+        if (existeCampo('email', $email, $llave, $id)) {
             $errores = true;
         }
     }
-    if (!longitudCadenaValida('pass', $pass, 5, 10)) {
+    if (strlen($pass) != 0 && !longitudCadenaValida('pass', $pass, 5, 10)) {
         $errores = true;
     }
     if (!longitudCadenaValida('username', $username, 5, 12)) {
         $errores = true;
     } else {
-        if (existeCampo('username', $username, $llave)) {
+        if (existeCampo('username', $username, $llave, $id)) {
             $errores = true;
         }
     }
 
     if ($errores) {
-        header("Location:register.php");
+        header("Location:update.php?user=$user");
         exit;
-    }    //todo está correcto procedemos a insertar al usuario
-    $passHaseada = password_hash($pass, PASSWORD_BCRYPT);
-    $q = "insert into users(username, email, pass, perfil) values(?, ?, ?, 'User')";
+    }
+    //todo está correcto procedemos a actualizar el usuario
+
+    if (strlen($pass) != 0) $passHaseada = password_hash($pass, PASSWORD_BCRYPT);
+
+    $q = (strlen($pass) == 0)  ? "update users set email=?, username=?, perfil=? where id=?"
+        : "update users set email=?, username=?, perfil=?, pass=? where id=?";
+
     $stmt = mysqli_stmt_init($llave);
     mysqli_stmt_prepare($stmt, $q);
-    mysqli_stmt_bind_param($stmt, 'sss', $username, $email, $passHaseada);
+
+    (strlen($pass) == 0) ? mysqli_stmt_bind_param($stmt, 'sssi', $email, $username, $perfil, $id)
+        : mysqli_stmt_bind_param($stmt, 'ssssi', $email, $username, $perfil, $passHaseada, $id);
+
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
     mysqli_close($llave);
-    //inicio sesion al usaurio nuevo 
-    $_SESSION['login'] = ['User', $username, $email];
+    //actualizao la sesion solo si me he editado a mi mismo
+    if ($user == $_SESSION['login'][1]) {
+        $_SESSION['login'] = [$perfil, $username, $email];
+    }
     header("Location:home.php");
     exit;
 }
@@ -76,24 +106,26 @@ if (isset($_POST['email'])) {
                     <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                         EDITAR USUARIO
                     </h1>
-                    <form class="space-y-4 md:space-y-6" action="register.php" method="POST">
+                    <form class="space-y-4 md:space-y-6" action="update.php?user=<?= $user ?>" method="POST">
                         <div>
                             <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
-                            <input type="text" name="username" id="username" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Your username..." />
+                            <input type="text" name="username" value="<?= $un ?>"
+                                id="username" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Your username..." />
                             <?php
                             pintarError('err_username');
                             ?>
                         </div>
                         <div>
                             <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
-                            <input type="text" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="name@company.com" />
+                            <input type="text" name="email" value="<?= $em ?>"
+                                id="email" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="name@company.com" />
                             <?php
                             pintarError('err_email');
                             ?>
                         </div>
                         <div>
                             <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-                            <input type="password" name="pass" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                            <input type="password" name="pass" id="password" placeholder="Your Pass..." class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
                             <?php
                             pintarError('err_pass');
                             pintarError('err_login');
@@ -101,12 +133,15 @@ if (isset($_POST['email'])) {
                         </div>
                         <?php
                         if ($perfilUsuario == 'Admin') {
+                            $adminSelected = ($pf == 'Admin') ? "selected" : "";
+                            $userSelected = ($pf == 'User') ? "selected" : "";
                             echo <<< TXT
                         <div class="mb-4">
                             <label for="perfil" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Perfil</label>
                             <select name="perfil" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                            <option>Admin</option>
-                            <option>User</option>
+                            <option>Selecciona un Perfil</option>
+                            <option $adminSelected>Admin</option>
+                            <option $userSelected>User</option>
                             </select>
                         </div>
                         TXT;

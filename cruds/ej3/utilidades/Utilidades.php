@@ -45,12 +45,14 @@ function isLoginValido($email, $pass, $llave)
     return true;
 }
 
-function existeCampo($nomCampo, $valorCampo, $llave)
+function existeCampo($nomCampo, $valorCampo, $llave, $id=null)
 {
-    $q = "select id from users where $nomCampo=?";
+    $q = ($id===null) ? "select id from users where $nomCampo=?" :
+        "select id from users where $nomCampo=? AND id != ?";
     $stmt = mysqli_stmt_init($llave);
     mysqli_stmt_prepare($stmt, $q);
-    mysqli_stmt_bind_param($stmt, 's', $valorCampo);
+    ($id===null) ? mysqli_stmt_bind_param($stmt, 's', $valorCampo) :
+        mysqli_stmt_bind_param($stmt, 'si', $valorCampo, $id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_store_result($stmt);
     $filas = mysqli_stmt_num_rows($stmt);

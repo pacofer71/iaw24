@@ -83,6 +83,9 @@ mysqli_close($llave);
                     $contenido = (isset($perfil) && $perfil == 'Admin') ?
                         "<form method='POST' action='borrar.php'>
                         <input type='hidden' name='id' value='{$item['id']}' />
+                        <a href='update.php?user={$item['username']}'>
+                        <i class='fas fa-edit mr-2'></i>
+                        </a>
                         <button type='submit' $boton><i class='fas fa-trash'></i></button>
                     </form>" :
                         "NO DISPONIBLE";
