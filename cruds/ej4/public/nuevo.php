@@ -14,6 +14,10 @@
         $errores=false;
         if(!esLongitudCampoValida('nombre', $nombre, 5, 60)){
             $errores=true;
+        }else{
+            if(!esNombreUnico($llave, $nombre)){
+                $errores=true;
+            }
         }
         if(!esLongitudCampoValida('descripcion', $descripcion, 10, 150)){
             $errores=true;
@@ -21,6 +25,25 @@
         if(!esPrecioValido($precio)){
             $errores=true;
         }
+        if(!esCategoriaValida($llave, $categoria_id)){
+            $errores=true;
+        }
+        if($errores){
+            header("Location:nuevo.php");
+            exit;
+        }
+        //si estamos aqui todo correcto vamos a guardar el articulo
+        $q="insert into articulos(nombre, descripcion, categoria_id, precio) values(?,?,?,?)";
+        $stmt=mysqli_stmt_init($llave);
+        mysqli_stmt_prepare($stmt, $q);
+        mysqli_stmt_bind_param($stmt, 'ssid', $nombre, $descripcion, $categoria_id, $precio);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        mysqli_close($llave);
+        $_SESSION['mensaje']="Se guardó el artículo";
+        header("Location:articulos.php");
+        exit;
+
 
 
     }
@@ -56,6 +79,9 @@
                     placeholder="Nombre del artículo">
                 <i class="fas fa-tag absolute left-3 top-2.5 text-gray-400"></i>
             </div>
+            <?php
+                pintarError('err_nombre');
+            ?>
         </div>
 
         <!-- Campo de descripción -->
@@ -67,6 +93,9 @@
                 rows="3"
                 class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
                 placeholder="Descripción del artículo"></textarea>
+                <?php
+                pintarError('err_descripcion');
+            ?>
         </div>
 
         <!-- Campo de precio -->
@@ -79,8 +108,11 @@
                     name="precio"
                     class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 pl-10"
                     placeholder="0.00">
-                <i class="fas fa-dollar-sign absolute left-3 top-2.5 text-gray-400"></i>
+                <i class="fas fa-euro-sign absolute left-3 top-2.5 text-gray-400"></i>
             </div>
+            <?php
+                pintarError('err_precio');
+            ?>
         </div>
 
         <!-- Campo de categoría -->
@@ -99,6 +131,9 @@
                 </select>
                 <i class="fas fa-list-ul absolute left-3 top-2.5 text-gray-400"></i>
             </div>
+            <?php
+                pintarError('err_categoria_id');
+            ?>
         </div>
 
         <!-- Botones -->

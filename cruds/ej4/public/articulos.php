@@ -71,14 +71,34 @@ mysqli_close($llave);
                             <?= $item['precio'] ?> €
                         </td>
                         <td class="px-6 py-4">
-                            formulario
+                            <form action="delete.php" method="POST">
+                                <a href="update.php?id=<?= $item['id'] ?>">
+                                    <i class="fas fa-edit text-green-500"></i>
+                                </a>
+                                <input type='hidden' name='codigo' value="<?= $item['id'] ?>" />
+                                <button type='submit'>
+                                    <i class="fas fa-trash text-red-600"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-
+    <?php if (isset($_SESSION['mensaje'])): ?>
+        <script>
+            Swal.fire({
+                icon: "success",
+                title: "<?= $_SESSION['mensaje']; ?>",
+                showConfirmButton: false,
+                timer: 1500
+            });
+        </script>
+    <?php
+        unset($_SESSION['mensaje']);
+    endif;
+    ?>
 </body>
 
 </html>
